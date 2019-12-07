@@ -1522,7 +1522,7 @@ function post_relation_term($termIDs, $post_id){
 function is_userSign($user_id){
   global $wpdb;
   $sql = 'select count(*) from wp_usertick where user_id = '.$user_id.' and date_format(tick_date, "%Y-%m-%d") = "'.date('Y-m-d').'"';
-  return $wpdb->get_var($sql);
+  return $wpdb->get_var($sql)*1;
 }
 
 // 昨天是否签到
@@ -1530,7 +1530,7 @@ function is_yesUserSign($user_id){
   global $wpdb;
   $sql = 'select count(*) from wp_usertick where user_id = '.$user_id.' and 
   date_format(tick_date, "%Y-%m-%d") = "'.date('Y-m-d', strtotime("-1 day")).'"';
-  return $wpdb->get_var($sql);
+  return $wpdb->get_var($sql)*1;
 }
 
 // 执行签到
@@ -1881,6 +1881,9 @@ function wj_filter_user($user){
   // 修正 display_name;
   $user->data->display_name = $wpdb->get_var('select display_name from wp_users where ID = '.$user->ID);
   
+  // 金币
+  $user->data->user_coin = getUserIntegral($user->ID)*1;
+  
   return $user->data;
 }
 
@@ -2058,7 +2061,7 @@ function wj_filter_category($term){
 
 // 评论
 function wj_filter_comment($comment){
-  $comment->comment_date = time_since($comment->comment_date);
+  @$comment->comment_date = time_since($comment->comment_date);
   unset($comment->comment_date_gmt);
   $comment->comment_content = wpautop($comment->comment_content);
   $comment->avatar = preg_replace( '/<img(.+?)src=[\'"](.+?)[\'"](.+?)>/im', "$2", get_avatar($comment->user_id ));
@@ -2175,4 +2178,11 @@ function singleToc($content, $only = false){
 		$toc = "\n<div class=\"singleToc\"><ul>\n" . $toc . "</ul></div>\n";
 	}
 	return $only?$content:$toc;
+}
+
+function getUserIntegralList($user_id, $page, $rows){
+  global $wpdb;
+  $res = $wpdb->get_results('select * from wp_integral where user_id = '.$user_id.' 
+  order by id desc limit '.($page-1)*$rows.','.$rows);
+  return $res;
 }
