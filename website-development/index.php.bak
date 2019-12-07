@@ -1,0 +1,29 @@
+<?php
+include('../wp-load.php');
+include('functions.php');
+
+/**
+ * 配置
+ */
+define('APPURL', '/resume/');
+
+if(!isset($_SERVER['REDIRECT_URL'])){
+  // 访问的首页
+  include('home.php');
+}else{
+  $uri = $_SERVER['REDIRECT_URL'];
+  $ura = explode('/', $uri);
+  unset($ura[0]);
+  $temUra = array();
+  foreach($ura as $key => $item){
+    if($key%2==1){
+      $temUra[$item] = $ura[$key+1];
+    }
+  }
+  $file = $temUra['resume'].'.php';
+  if(file_exists($file)){
+    include($file);
+  }else{
+    wp_die('找不到页面！', '出错啦！', array('response' => '404'));
+  }
+}
