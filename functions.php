@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set("Asia/Shanghai");
+
 include( 'Parsedown.php' );
 include( 'common/verify.php' );
 $Parsedown = new Parsedown();
@@ -550,15 +552,46 @@ function post_baidu( $ID, $post, $api ) {
 function publish_baidu($ID, $post){
   $api = 'http://data.zz.baidu.com/urls?site=www.wenjiangs.com&token=x33AJZVnADCXKKmt';
   post_baidu($ID, $post, $api);
+  // 文章审核通过加金币
+  $integralCount = getUserIntegralList($post->post_author, 1, 10, 'publish_'.$post->post_type, date('Y-m-d'));
+  $post_type = array(
+    'post' => '发布文章',
+    'topic' => '发布话题',
+    'doc' => '发布专栏文章',
+  );
+  if(count($integralCount)<1){
+    addUserIntegral($post->post_author, $post->ID, 'publish_'.$post->post_type, 20, $post_type[$post['post_type']]);
+  }
+  // 文章审核通过邮件通知
+  newPostNotify($ID, $post);
 }
-/*
-function update_baidu($ID, $post){
-  $api = 'http://data.zz.baidu.com/update?site=www.wenjiangs.com&token=x33AJZVnADCXKKmt';
-  post_baidu($ID, $post, $api);
-}*/
 
 add_action( 'publish_post', 'publish_baidu', 10, 2 );
-//add_action( 'save_post', 'update_baidu', 10, 2 );
+add_action( 'publish_topic', 'publish_baidu', 10, 2 );
+add_action( 'publish_doc', 'publish_baidu', 10, 2 );
+
+function newPostNotify($ID, $post) {
+  if( wp_is_post_revision($ID) ) return;
+  global $wpdb;
+  if ( $post->post_status == 'publish' && $_POST['original_post_status'] != 'publish' ) {
+    //获取管理员、编辑
+    $editors = $wpdb->get_col("SELECT user_id FROM $wpdb->usermeta WHERE meta_key = 'wp_user_level' AND meta_value >= 7 ORDER BY user_id");
+    if(in_array($post->post_author, $editors)){
+      //编辑和管理员自己发布的文章除外
+      return ;
+    }
+    // 读数据库，获取所有用户的email
+    $wp_user_email = $wpdb->get_results("SELECT DISTINCT user_email FROM $wpdb->users WHERE id=".$post->post_author);
+    // 依次给每个Email发邮件
+    foreach ( $wp_user_email as $email ) {
+      $subject = '文江博客文章通过审核邮件';
+      // 邮件内容：新文章网址：+ URL
+      $message = '通过审核的文章地址是：' . get_permalink($post_ID);
+      // 发邮件
+      wp_mail($email->user_email, $subject, $message);
+    }
+  }
+}
 
 //判断是否为蜘蛛
 function is_spider() {
@@ -1415,7 +1448,7 @@ function get_message($id, $user_id){
 function send_message($send_id, $accept_id, $title, $content, $type, $source){
   global $wpdb;
   $sql = 'insert into wp_messages values (NULL, '.$send_id.', '.$accept_id.', "'.$title.'", 
-    "'.$content.'", "'.$type.'", "'.$source.'", 1, '.(time()+28800).')';
+    "'.$content.'", "'.$type.'", "'.$source.'", 1, '.time().')';
   $isInsert = $wpdb->query($sql);
   return $isInsert?$wpdb->insert_id:$isInsert;
 }
@@ -2180,9 +2213,99 @@ function singleToc($content, $only = false){
 	return $only?$content:$toc;
 }
 
-function getUserIntegralList($user_id, $page, $rows){
+function getUserIntegralList($user_id, $page, $rows, $type = '', $date = ''){
   global $wpdb;
-  $res = $wpdb->get_results('select * from wp_integral where user_id = '.$user_id.' 
-  order by id desc limit '.($page-1)*$rows.','.$rows);
+  $sql = 'select * from wp_integral where user_id = '.$user_id;
+  if(!empty($type)){
+    $sql .= ' and integral_type = "'.$type.'" ';
+  }
+  if(!empty($date)){
+    $sql .= ' and date_format(integral_date, "%Y-%m-%d") = "'.$date.'" ';
+  }
+  $sql .= ' order by id desc limit '.($page-1)*$rows.','.$rows;
+  $res = $wpdb->get_results($sql);
   return $res;
+}
+
+function addUserBrowse($user_id, $item_id, $item_type){
+  global $wpdb;
+  // 先查询是否存在
+  $sql = 'select id from wp_user_browse where user_id = '.$user_id.' and item_id = '.$item_id.' and item_type = "'.$item_type.'"';
+  $isExist = $wpdb->get_var($sql);
+  if($isExist){
+    $sql = 'update wp_user_browse set view_date = "'.date('Y-m-d H:i:s').'" where id = '.$isExist;
+  }else{
+    $sql = 'insert into wp_user_browse values (NULL, '.$user_id.', '.$item_id.', "'.$item_type.'", "'.date('Y-m-d H:i:s').'", "")';
+  }
+  return $isInsert = $wpdb->query($sql);
+}
+
+function addUserLoginCoin($user_id){
+  $isGive = isGiveLoginCoin($user_id);
+  if(!$isGive){
+    addUserIntegral($user_id, 0, 'login', 5, '每日登录');
+  }
+}
+
+function isGiveLoginCoin($user_id){
+  global $wpdb;
+  // 今日是否赠送
+  $sql = 'select count(*) from wp_integral where user_id = '.$user_id.' and integral_type = "login" and date_format(integral_date, "%Y-%m-%d") = "'.date('Y-m-d').'"';
+  return $isGive = $wpdb->get_var($sql)*1;
+}
+
+function getUserBrowseList($user_id, $page, $rows, $type = '', $date = ''){
+  global $wpdb;
+  $sql = 'select * from wp_user_browse where user_id = '.$user_id;
+  if(!empty($type)){
+    $sql .= ' and item_type = "'.$type.'" ';
+  }
+  if(!empty($date)){
+    $sql .= ' and date_format(view_date, "%Y-%m-%d") = "'.$date.'" ';
+  }
+  $sql .= ' order by id desc limit '.($page-1)*$rows.','.$rows;
+  return $res = $wpdb->get_results($sql);
+}
+
+// 今日发布的 评论/回复
+function getTodaySubmitCommentCount($user_id, $type){
+  global $wpdb;
+  $sql = 'select count(*) from wp_comments, wp_posts where wp_comments.comment_post_ID = wp_posts.ID and wp_posts.post_type = "'.$type.'" 
+  and user_id = '.$user_id.' and date_format(comment_date, "%Y-%m-%d") = "'.date('Y-m-d').'"';
+  return $wpdb->get_var($sql)*1;
+}
+
+// 今日发布的 文章/话题
+function getTodaySubmitPostCount($user_id, $type){
+  global $wpdb;
+  $sql = 'select count(*) from wp_posts where post_type = "'.$type.'" and post_author = '.$user_id.' and 
+  post_status = "publish" and date_format(comment_date, "%Y-%m-%d") = "'.date('Y-m-d').'"';
+  return $wpdb->get_var($sql)*1;
+}
+
+// 评论审核通过发送邮件
+add_action('comment_unapproved_to_approved', 'wj_comment_approved');
+function wj_comment_approved($comment){
+  if (is_email($comment->comment_author_email)){
+    $post_link = get_permalink($comment->comment_post_ID);
+    $title = '您在【' . get_bloginfo('name') . '】的评论已通过审核';
+    $body = '您在《<a href="' . $post_link . '" target="_blank" >' . get_the_title($comment->comment_post_ID) . '</a>》中发表的评论已通过审核！<br /><br />';
+    $body .= '<strong>您的评论：</strong><br />';
+    $body .= strip_tags($comment->comment_content) . '<br /><br />';
+    $body .= '您可以：<a href="' . get_comment_link($comment->comment_ID) . '" target="_blank">查看您的评论</a>  |  <a href="' . $post_link . '#comments" target="_blank">查看其他评论</a>  |  <a href="' . $post_link . '" target="_blank">再次阅读文章</a><br /><br />';
+    $body .= '欢迎再次光临【<a href="' . get_bloginfo('url') . '" target="_blank" title="' . get_bloginfo('description') . '">' . get_bloginfo('name') . '</a>】。';
+    $body .= '<br /><br />注：此邮件为系统自动发送，请勿直接回复';
+    @wp_mail($comment->comment_author_email, $title, $body, "Content-Type: text/html; charset=UTF-8");
+  }
+  // 通过加金币
+  $post = get_post($comment->comment_post_ID);
+  $integralCount = getUserIntegralList($comment->user_id, 1, 10, 'comment_'.$post->post_type, date('Y-m-d'));
+  $post_type = array(
+    'post' => '评论文章',
+    'topic' => '回复话题',
+    'doc' => '评论专栏文章',
+  );
+  if(count($integralCount)<3){
+    addUserIntegral($comment->user_id, $comment->comment_ID, 'comment_'.$post->post_type, 5, $post_type[$post['post_type']]);
+  }
 }
