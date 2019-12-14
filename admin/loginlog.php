@@ -88,6 +88,6 @@ if(isset($_GET['success'])){
 		</tbody>
 	</table>
 	<ul class="pagenavi">
-		<?php pagenavi(5, $max_page);?>
+		<?php pagenavi(5, $max_page); ?>
 	</ul>
 </div>

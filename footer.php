@@ -3,7 +3,7 @@
 <ul class="flink">
 <?php echo get_footer_menu(); ?>
 </ul>
-<p><?php echo get_option('footer_copyright'); ?> / <?php echo get_option('zh_cn_l10n_icp_num'); ?><p>
+<p><?php echo get_option('footer_copyright'); ?> / <a href="http://beian.miit.gov.cn" target="blank"><?php echo get_option('zh_cn_l10n_icp_num'); ?></a><p>
 </footer>
 <div class="side-tool">
 	<a href="/group/feedback"><i class="fa fa-send"></i></a>

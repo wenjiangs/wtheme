@@ -118,7 +118,7 @@ $prev = $next = null;
             <span class="wt-info-model">评论 <?php echo $post->comment_count; ?></span>
             <?php if(current_user_can($current_user->ID, $this_post_id)){ ?>
             <?php if(!empty($current_user->roles) && in_array('administrator', $current_user->roles)){ ?>
-            <?php edit_post_link(); ?>
+            <a href="<?php get_edit_post_link(); ?>" pjax="exclude">编辑</a>
             <?php } ?>
             <?php } ?>
           </div>
