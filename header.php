@@ -71,6 +71,7 @@ if(is_home()){
 <link rel="stylesheet" href="/wp-content/themes/wtheme/css/nprogress.css">
 <link rel="stylesheet" href="http://libs.wenjiangs.com/element-ui/theme-chalk/index.css">
 <link href="//at.alicdn.com/t/font_940179_s8yi7bi0tn.css" rel="stylesheet">
+<link href="/wp-content/themes/wtheme/css/swiper.min.css" rel="stylesheet">
 <link href="/wp-content/themes/wtheme/style.css?v=8" rel="stylesheet">
 <script src="/wp-content/themes/wtheme/js/jquery.min.js"></script>
 <script src="/wp-content/themes/wtheme/js/bootstrap.min.js"></script>
@@ -82,6 +83,7 @@ if(is_home()){
 <script src="/wp-content/themes/wtheme/js/nprogress.js"></script>
 <script src="/wp-content/themes/wtheme/js/jquery.pjax.js"></script>
 <script src="/wp-content/themes/wtheme/js/qrcode.js"></script>
+<script src="/wp-content/themes/wtheme/js/swiper.min.js"></script>
 <script src="http://libs.wenjiangs.com/MathJax/MathJax.js?config=TeX-AMS_HTML"></script>
 <?php wp_head(); ?>
 </head>

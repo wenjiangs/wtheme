@@ -26,7 +26,7 @@ get_header();
         ?>
         <div class="codeItem">
           <span class="codeItemDot"></span>
-          <h3><a target="blank" pjax="exclude" href="/runCode/?code=<?php echo $item->code_guid; ?>"><?php echo $item->code_name; ?></a></h3>
+          <h3><a target="blank" pjax="exclude" href="/runCode/#/?code=<?php echo $item->code_guid; ?>"><?php echo $item->code_name; ?></a></h3>
           <a target="blank" pjax="exclude" href="/runCode/view/<?php echo $item->code_guid; ?>">预览</a>
           <span class="codeItemTime"><?php echo date('Y-m-d', $item->code_create_date); ?></span>
         </div>

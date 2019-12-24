@@ -44,7 +44,6 @@
 		<?php if(isset($loop_category) && !empty($loop_category)){ echo $loop_category[0]->name.' - '; } ?>
 		<?php the_title(); ?>
 		</a>
-		<?php if(is_sticky()) echo '<span class="loop-sticky">置顶</span>'; ?>
 		</h3>
 		<?php if(count($thumb) > 3){ ?>
 		<ul class="article-img">
@@ -63,6 +62,7 @@
     <?php } ?>
     <div class="loopMeta">
       <div class="list-top pull-left">
+        <?php if(is_sticky()) echo '<span class="loop-sticky wt-info-model">置顶</span>'; ?>
         <span class="wt-info-model">
         <a href="<?php echo get_author_posts_url($post->post_author);?>" class="loop-user-name">
           <?php echo get_avatar($post->post_author); ?>
@@ -78,8 +78,6 @@
         ?>
         </a></span>
         <span class="wt-info-model"><?php echo time_since(get_the_time('Y-m-d H:i:s')); ?></span>
-      </div>
-      <div class="list-footer pull-right">
         <span class="wt-info-model"><i class="fa fa-eye"></i> 浏览 <?php echo get_post_meta($post->ID, 'views', true);?></span>
         <span class="wt-info-model"><i class="fa fa-comment-o"></i> 评论 <?php echo $post->comment_count; ?></span>
         <span class="wt-info-model"><i class="fa fa-heart-o"></i> 喜欢 <?php echo $follow_count; ?></span>

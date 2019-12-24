@@ -549,9 +549,11 @@ function post_baidu( $ID, $post, $api ) {
 	curl_close( $ch );
 }
 
-function publish_baidu($ID, $post){
+function publish_baidu($ID){
   $api = 'http://data.zz.baidu.com/urls?site=www.wenjiangs.com&token=x33AJZVnADCXKKmt';
+  $post = get_post($ID);
   post_baidu($ID, $post, $api);
+  
   // 文章审核通过加金币
   $integralCount = getUserIntegralList($post->post_author, 1, 10, 'publish_'.$post->post_type, date('Y-m-d'));
   $post_type = array(
@@ -560,15 +562,15 @@ function publish_baidu($ID, $post){
     'doc' => '发布专栏文章',
   );
   if(count($integralCount)<1){
-    addUserIntegral($post->post_author, $post->ID, 'publish_'.$post->post_type, 20, $post_type[$post['post_type']]);
+    addUserIntegral($post->post_author, $post->ID, 'publish_'.$post->post_type, 20, $post_type[$post->post_type]);
   }
   // 文章审核通过邮件通知
-  newPostNotify($ID, $post);
+  // newPostNotify($ID, $post);
 }
 
 add_action( 'publish_post', 'publish_baidu', 10, 2 );
-add_action( 'publish_topic', 'publish_baidu', 10, 2 );
-add_action( 'publish_doc', 'publish_baidu', 10, 2 );
+// add_action( 'publish_topic', 'publish_baidu', 10, 2 );
+// add_action( 'publish_doc', 'publish_baidu', 10, 2 );
 
 function newPostNotify($ID, $post) {
   if( wp_is_post_revision($ID) ) return;
@@ -777,8 +779,8 @@ function wt_login_footer() {
     <div class="login-sns">
         <p>您还可以通过以下方式创建账号</p>
         <div>
-          <a href="/oauth/qq" class="button"><i class="fa fa-qq"></i> QQ</a>
-          <a href="/oauth/weibo" class="button"><i class="fa fa-weibo"></i> 微博</a>
+          <a href="/oauth/qq/" class="button"><i class="fa fa-qq"></i> QQ</a>
+          <a href="/oauth/weibo/" class="button"><i class="fa fa-weibo"></i> 微博</a>
           <a href="/scanning-login" class="button"><i class="fa fa-weixin"></i> 小程序</a>
         </div>
         <b>如果你继续使用社交账号，并且还没有 Wenjiangs.com 账户，则需要创建一个，并同意我们的

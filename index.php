@@ -1,5 +1,16 @@
 <?php
 $home_banner = get_option('home_banner');
+
+$terms = get_terms(array(
+	'number'		=> 10,
+	'offset'		=> 0,
+	'taxonomy'		=> "docs",
+  'parent'    => 0,
+	'hide_empty' 	=> false,
+  'orderby' => 'id',
+  'order' => 'desc'
+));
+
 get_header();
 ?>
 <div class="container">
@@ -29,6 +40,28 @@ get_header();
 			</div>
 		</div>
 		<?php } ?>
+    
+    <div class="wt-container indexDocs">
+      <div class="wt-nav-tabs">
+        <h2 class="pull-left">最新手册</h2>
+      </div>
+      <div class="indexDocSwiper swiper-container">
+        <div class="swiper-wrapper">
+        <?php foreach($terms as $item){
+          $docs_cover = get_term_meta($item->term_id, 'docs_cover', true);
+          if(empty($docs_cover)){
+            $docs_cover = '/wp-content/themes/wtheme/images/placeholder.png';
+          }
+        ?>
+          <div class="swiper-slide">
+            <a href="<?php echo get_term_link($item->term_id, 'docs'); ?>"><img src="<?php echo $docs_cover; ?>"/></a>
+            <h3><a href="<?php echo get_term_link($item->term_id, 'docs'); ?>"><?php echo $item->name; ?></a></h3>
+          </div>
+        <?php } ?>
+        </div>
+      </div>
+    </div>
+    
 		<div class="wt-container">
 		<div class="wt-nav-tabs">
 			<h2 class="pull-left">最新文章</h2>

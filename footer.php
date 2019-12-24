@@ -150,6 +150,7 @@ $(function(){
   tongji();
   sumit_link();
   sideToc();
+  initIndexDocs();
 
   $(document).pjax('a[pjax!="exclude"]', '#pjax-container', {
     fragment: '#pjax-container',
@@ -169,7 +170,14 @@ $(function(){
     sumit_link();
     window.MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
 		sideToc();
+    initIndexDocs();
   })
+  
+  function initIndexDocs(){
+    var mySwiper = new Swiper ('.indexDocSwiper', {
+      slidesPerView: 7
+    });
+  }
 
 })
 </script>
