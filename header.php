@@ -65,7 +65,6 @@ if(is_home()){
 ?>">
 <link rel="shortcut icon" href="/favicon.ico">
 <link href="/wp-content/themes/wtheme/css/bootstrap.min.css" rel="stylesheet">
-<link href="/wp-content/themes/wtheme/css/line-number.css" rel="stylesheet">
 <link href="/wp-content/themes/wtheme/css/prism.css" rel="stylesheet">
 <link href="/wp-content/themes/wtheme/css/font-awesome.min.css" rel="stylesheet">
 <link rel="stylesheet" href="/wp-content/themes/wtheme/css/nprogress.css">

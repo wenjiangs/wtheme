@@ -1845,29 +1845,28 @@ height: 28px; }
 .singleToc{
   padding: 15px 0;
   color: #333;
-  line-height: 32px;
   font-size: 15px;
   max-height: 500px;
   overflow: auto;
+  position: relative;
 }
 .singleToc a{
   color: #333;
 }
 .singleToc ul{
-  margin:0;
+  margin: 0;
   padding: 0;
 }
 .singleToc li{
   list-style: none;
-  padding-left: 20px;
+  padding: 4px 6px 4px 20px;
 }
 .singleToc .toc-3{
-  padding-left: 35px;
-  line-height: 28px;
+  padding: 1px 6px 1px 30px;
 }
 .singleToc .toc-3 a{
   color: #666;
-  font-size: 13px;
+  font-size: 14px;
 }
 .singleToc .toc-4{
   padding-left: 50px;
@@ -1983,10 +1982,20 @@ height: 28px; }
 }
 .indexDocs h3, .indexDocs h3 a{
   font-size: 12px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
   color: #666;
+  
+  overflow : hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+
+  display: -moz-box;
+  -moz-line-clamp: 2;
+  -moz-box-orient: vertical;
+  
+  word-break: break-all;
+  
 }
 .indexDocSwiper{
   text-align: center;

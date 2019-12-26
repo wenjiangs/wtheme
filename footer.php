@@ -12,6 +12,11 @@
 <script>
 $(function(){
   
+  function reLightCode(){
+    $('body').find('pre').addClass("line-numbers");
+    Prism.highlightAll();
+  }
+  
 	function reply(){
 		$(".reply_btn").each(function(){
 			$(this).click(function(){
@@ -151,6 +156,7 @@ $(function(){
   sumit_link();
   sideToc();
   initIndexDocs();
+  reLightCode();
 
   $(document).pjax('a[pjax!="exclude"]', '#pjax-container', {
     fragment: '#pjax-container',
@@ -171,11 +177,30 @@ $(function(){
     window.MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
 		sideToc();
     initIndexDocs();
+    reLightCode();
   })
   
   function initIndexDocs(){
     var mySwiper = new Swiper ('.indexDocSwiper', {
-      slidesPerView: 7
+      slidesPerView: 7,
+      breakpointsInverse: true,
+      breakpoints: {
+        240: {
+          slidesPerView: 4,
+        },
+        //当宽度大于等于320
+        375: {
+          slidesPerView: 4,
+        },
+       //当宽度大于等于480
+        480: { 
+          slidesPerView: 5,
+        },
+        //当宽度大于等于640
+        640: {
+          slidesPerView: 7,
+        }
+      }
     });
   }
 
