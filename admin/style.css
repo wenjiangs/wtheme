@@ -1,0 +1,19 @@
+#views, #collection, #categories{
+  width: 64px;
+}
+table.users .username img{
+  height: 40px;
+  width: 40px;
+}
+
+table.users #name, table.users #role, table.users #user_comment{
+  width: 54px;
+}
+
+table.users #last_activity{
+  width: 120px;
+}
+
+table.users #user_source{
+  width: 90px;
+}

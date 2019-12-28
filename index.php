@@ -43,6 +43,7 @@ get_header();
     
     <div class="wt-container indexDocs">
       <div class="wt-nav-tabs">
+        <a href="/doc" class="pull-right">更多 <i class="fa fa-angle-right"></i></a>
         <h2 class="pull-left">最新手册</h2>
       </div>
       <div class="indexDocSwiper swiper-container">

@@ -10,6 +10,12 @@ function count_user_comments( $user_id ) {
 	return $wpdb->get_var( 'select count(*) from wp_comments where user_id = '.$user_id );
 }
 
+// 后台添加样式
+add_action('admin_init', 'admin_wthteme_style');
+function admin_wthteme_style(){
+  wp_enqueue_style("wthteme", get_stylesheet_directory_uri().'/admin/style.css');
+}
+
 //面包屑导航
 function breadcrumbs( $conscat = '' ) {
 	global $post, $cat;
@@ -404,10 +410,11 @@ function custom_post_doc() {
 
 add_action( 'init', 'custom_post_doc' );
 
-// 添加一个新栏目“上次登录”
+// 添加一个新栏目 上次登录
 function add_last_login_column( $columns ) {
 	$columns['last_activity'] = '上次登录';
-	$columns['wxsp_openid'] = '微信小程序OpenID';
+	$columns['user_source'] = '来源';
+	$columns['user_comment'] = '评论';
 	return $columns;
 }
 
@@ -415,12 +422,37 @@ add_filter( 'manage_users_columns', 'add_last_login_column' );
 
 // 显示登录时间到新增栏目
 function add_last_login_column_value( $value, $column_name, $user_id ) {
+  global $wpdb;
 	if ( 'last_activity' == $column_name ) {
 		return $value = get_user_meta( $user_id, 'last_activity', true );
 	}
-	if ( 'wxsp_openid' == $column_name ) {
-		return $value = get_user_meta( $user_id, 'wxsp_openid', true );
+	if ( 'user_source' == $column_name ) {
+    $wxsp_openid = get_user_meta( $user_id, 'wxsp_openid', true );
+    if($wxsp_openid){
+      return '微信小程序';
+    }
+    $weibo_id = get_user_meta( $user_id, 'weibo_id', true );
+    if($weibo_id){
+      return '新浪微博';
+    }
+    $alipaysp_userid = get_user_meta( $user_id, 'alipaysp_userid', true );
+    if($alipaysp_userid){
+      return '支付宝小程序';
+    }
+    $unionid = get_user_meta( $user_id, 'unionid', true );
+    $openid = get_user_meta( $user_id, 'openid', true );
+    if($unionid || $openid){
+      return 'QQ开放平台';
+    }
+    $qqsp_unionid = get_user_meta( $user_id, 'unionid', true );
+    $qqsp_openid = get_user_meta( $user_id, 'openid', true );
+    if($qqsp_unionid || $qqsp_openid){
+      return 'QQ小程序';
+    }
 	}
+  if ( 'user_comment' == $column_name ) {
+    return $wpdb->get_var('select count(*) from wp_posts, wp_comments where wp_comments.user_id = '.$user_id.' and wp_posts.post_status = "publish" and wp_posts.post_type = "post" and wp_comments.comment_post_ID = wp_posts.ID');
+  }
 }
 
 add_action( 'manage_users_custom_column', 'add_last_login_column_value', 10, 3 );
@@ -864,35 +896,35 @@ function categorykeywordsedit( $taxonomy ) {
 	wp_enqueue_script( 'my-upload' );
 	wp_enqueue_style( 'thickbox' );
 	?>
-    <tr class="form-field">
-        <th scope="row" valign="top"><label for="tag-keywords">关键词</label></th>
-        <td><input type="text" name="tag-keywords" id="tag-keywords"
-                   value="<?php echo get_term_meta( $taxonomy->term_id, 'keywords', true ); ?>"/></td>
-    </tr>
-    <tr class="form-field">
-        <th scope="row" valign="top"><label for="tag-keywords">缩略图</label></th>
-        <td><?php
-			$tag_thumb = get_term_meta( $taxonomy->term_id, 'thumb', true );
-			if ( $tag_thumb ) {
-				echo '<img src="'.$tag_thumb.'" /> <br/>';
-			}
-			?><input id="tag-thumb" name="tag-thumb" type="text" value="<?php echo $tag_thumb; ?>"/>
-            <p><input id="upload_image_button" class="button button-primary" type="button" value="上传图片"/></p>
-            <script>
-                jQuery(document).ready(function () {
-                    jQuery('#upload_image_button').click(function () {
-                        tb_show('', '<?php echo admin_url(); ?>media-upload.php?type=image&amp;TB_iframe=true');
-                        return false;
-                    });
-                    window.send_to_editor = function (html) {
-                        imgurl = jQuery('img', html).attr('src');
-                        jQuery('#tag-thumb').val(imgurl);
-                        tb_remove();
-                    }
-                });
-            </script>
-        </td>
-    </tr>
+  <tr class="form-field">
+    <th scope="row" valign="top"><label for="tag-keywords">关键词</label></th>
+    <td><input type="text" name="tag-keywords" id="tag-keywords"
+               value="<?php echo get_term_meta( $taxonomy->term_id, 'keywords', true ); ?>"/></td>
+  </tr>
+  <tr class="form-field">
+    <th scope="row" valign="top"><label for="tag-keywords">缩略图</label></th>
+    <td><?php
+  $tag_thumb = get_term_meta( $taxonomy->term_id, 'thumb', true );
+  if ( $tag_thumb ) {
+    echo '<img src="'.$tag_thumb.'" /> <br/>';
+  }
+  ?><input id="tag-thumb" name="tag-thumb" type="text" value="<?php echo $tag_thumb; ?>"/>
+      <p><input id="upload_image_button" class="button button-primary" type="button" value="上传图片"/></p>
+      <script>
+        jQuery(document).ready(function () {
+          jQuery('#upload_image_button').click(function () {
+            tb_show('', '<?php echo admin_url(); ?>media-upload.php?type=image&amp;TB_iframe=true');
+            return false;
+          });
+          window.send_to_editor = function (html) {
+            imgurl = jQuery('img', html).attr('src');
+            jQuery('#tag-thumb').val(imgurl);
+            tb_remove();
+          }
+        });
+      </script>
+    </td>
+  </tr>
 	<?php
 }
 
@@ -923,35 +955,35 @@ function extra_user_profile_fields( $user ) {
 	wp_enqueue_style( 'thickbox' );
 
 	?>
-    <h3>用户头像</h3>
+  <h3>用户头像</h3>
 
-    <table class="form-table">
-        <tr>
-            <th><label for="twitter">用户头像</label></th>
-            <td><?php
-				$user_avatar = get_usermeta( $user->ID, 'user_avatar', true );
-				if ( $user_avatar ) {
-					echo '<img src="'.$user_avatar.'" /> <br/>';
-				}
-				?><input id="user_avatar" class="regular-text code" name="user_avatar" type="text"
-                         value="<?php echo $user_avatar; ?>"/>
-                <p><input id="upload_image_button" class="button button-primary" type="button" value="上传图片"/></p>
-                <script>
-                    jQuery(document).ready(function () {
-                        jQuery('#upload_image_button').click(function () {
-                            tb_show('', '<?php echo admin_url(); ?>media-upload.php?type=image&amp;TB_iframe=true');
-                            return false;
-                        });
-                        window.send_to_editor = function (html) {
-                            imgurl = jQuery('img', html).attr('src');
-                            jQuery('#user_avatar').val(imgurl);
-                            tb_remove();
-                        }
-                    });
-                </script>
-            </td>
-        </tr>
-    </table>
+  <table class="form-table">
+    <tr>
+        <th><label for="twitter">用户头像</label></th>
+        <td><?php
+    $user_avatar = get_usermeta( $user->ID, 'user_avatar', true );
+    if ( $user_avatar ) {
+      echo '<img src="'.$user_avatar.'" /> <br/>';
+    }
+    ?><input id="user_avatar" class="regular-text code" name="user_avatar" type="text"
+                 value="<?php echo $user_avatar; ?>"/>
+        <p><input id="upload_image_button" class="button button-primary" type="button" value="上传图片"/></p>
+        <script>
+          jQuery(document).ready(function () {
+            jQuery('#upload_image_button').click(function () {
+              tb_show('', '<?php echo admin_url(); ?>media-upload.php?type=image&amp;TB_iframe=true');
+              return false;
+            });
+            window.send_to_editor = function (html) {
+              imgurl = jQuery('img', html).attr('src');
+              jQuery('#user_avatar').val(imgurl);
+              tb_remove();
+            }
+          });
+        </script>
+      </td>
+    </tr>
+  </table>
 <?php }
 
 add_action( 'personal_options_update', 'save_extra_user_profile_fields' );
@@ -2309,5 +2341,51 @@ function wj_comment_approved($comment){
   );
   if(count($integralCount)<3){
     addUserIntegral($comment->user_id, $comment->comment_ID, 'comment_'.$post->post_type, 5, $post_type[$post['post_type']]);
+  }
+}
+
+### Function Show Post Views Column in WP-Admin
+add_action('manage_posts_custom_column', 'add_postviews_column_content');
+add_filter('manage_posts_columns', 'add_postviews_column');
+add_action('manage_pages_custom_column', 'add_postviews_column_content');
+add_filter('manage_pages_columns', 'add_postviews_column');
+function add_postviews_column($defaults) {
+  $defaults['views'] = '浏览';
+  $defaults['collection'] = '收藏';
+  return $defaults;
+}
+
+
+### Functions Fill In The Views Count
+function add_postviews_column_content($column_name) {
+  global $post, $wpdb;
+  switch($column_name){
+    case 'views':
+      echo get_post_meta($post->ID, 'views', true);
+    case 'collection':
+      echo $wpdb->get_var('select count(*) from wp_user_item_taxonomy
+      where item_id = '.$post->ID.' and item_type = "'.$post->post_type.'"')*1;
+  }
+}
+
+### Function Sort Columns
+add_filter('manage_edit-post_sortable_columns', 'sort_postviews_column');
+add_filter('manage_edit-page_sortable_columns', 'sort_postviews_column');
+function sort_postviews_column($defaults){
+  $defaults['views'] = '浏览';
+  $defaults['collection'] = '收藏';
+  return $defaults;
+}
+add_action('pre_get_posts', 'sort_postviews');
+function sort_postviews($query) {
+  $orderby = $query->get('orderby');
+  switch($orderby){
+    case 'views':
+      $query->set('meta_key', 'views');
+    case 'collection':
+      $query->set('meta_key', 'collection');
+  }
+  if(in_array($orderby, array('views', 'collection'))) {
+    $query->set('orderby', 'meta_value_num');
   }
 }
